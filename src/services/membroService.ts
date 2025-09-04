@@ -1,6 +1,6 @@
 // src/membros/MembroService.ts
 
-import { Membro } from './membro';
+import { Membro } from '../membros/membro';
 import { BaseServico } from '../compartilhado/BaseServico';
 import { IRepositorio } from '../repositorios/IRepositorio';
 

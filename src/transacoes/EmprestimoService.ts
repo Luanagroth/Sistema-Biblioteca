@@ -1,6 +1,6 @@
 import { Emprestimo } from './Emprestimo';
-import { LivroService } from '../servicos/livroService';
-import { MembroService } from '../membros/membroService';
+import { LivroService } from '../services/livroService';
+import { MembroService } from '../services/membroService';
 import { BaseServico } from '../compartilhado/BaseServico';
 import { Livro } from '../livros/livro';
 import { Membro } from '../membros/membro';

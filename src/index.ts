@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { LivroService } from './servicos/livroService';
-import { MembroService } from './membros/membroService';
+import { LivroService } from './services/livroService';
+import { MembroService } from './services/membroService';
 import { EmprestimoService } from './transacoes/EmprestimoService';
 import { SQLiteRepositorio } from './repositorios/SQLiteRepositorio';
 import { Livro } from './livros/livro';

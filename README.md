@@ -62,7 +62,8 @@ Siga os passos abaixo para instalar e rodar o projeto em sua máquina.
 
 1.  **Clone o repositório**
     ```sh
-    git clone [https://github.com/Luanagroth/Sistema-Biblioteca.git](https://github.com/Luanagroth/Sistema-Biblioteca.git)
+    git clone [https://github.com/Luanagroth/Sistema-Biblioteca.git]
+    (https://github.com/Luanagroth/Sistema-Biblioteca.git)
     ```
 2.  **Navegue até a pasta do projeto**
     ```sh
@@ -108,4 +109,4 @@ Siga os passos abaixo para instalar e rodar o projeto em sua máquina.
 
 * **LinkedIn:** `www.linkedin.com/in/luanagroth`
 * **Email:** `luanaeulalia56@gmail.com`
-* **GitHub:** `https://github.com/seu-usuario`
+* **GitHub:** `https://github.com/Luanagroth`

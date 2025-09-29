@@ -1,22 +1,13 @@
-
-
-
+// frontend/src/App.tsx
 import LivroComEmprestimo from './componentes/LivroComEmprestimo';
-import FormularioLivro from './componentes/FormularioLivro';
-import FormularioEmprestimo from './componentes/FormularioEmprestimo';
-import FormularioMembro from './componentes/FormularioMembro';
+import './App.css';
 
 function App() {
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
+    <div className="App">
       <h1>Sistema de Biblioteca</h1>
-  <FormularioMembro />
-  <hr />
-  <FormularioLivro />
-  <hr />
-  <FormularioEmprestimo />
-  <hr />
-  <LivroComEmprestimo />
+      <hr />
+      <LivroComEmprestimo />
     </div>
   );
 }

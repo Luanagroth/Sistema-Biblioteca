@@ -1,144 +1,175 @@
-import React, { useState } from 'react';
+import React, { useState, type FormEvent, type ChangeEvent, type FocusEvent } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import type { Membro } from '../models/membros';
 
-interface Membro {
-  id: string;
-  nome: string;
-  email: string;
-  telefone: string;
-  endereco: string;
-  ativo: boolean;
+interface FormularioMembroProps {
+  onCadastroSucesso: (membro: Membro) => void;
 }
 
-const FormularioMembro: React.FC = () => {
+const FormularioMembro: React.FC<FormularioMembroProps> = ({ onCadastroSucesso }) => {
+  const estadoInicial: Membro = {
+    id: '',
+    nome: '',
+    email: '',
+    telefone: '',
+    ativo: true,
+    cpf: '',
+  };
 
-  const [id, setId] = useState('');
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [ativo, setAtivo] = useState(true);
+  const [formData, setFormData] = useState<Partial<Membro>>(estadoInicial);
   const [enviando, setEnviando] = useState(false);
 
-  const gerarId = () => Math.random().toString(36).substr(2, 9);
+  const buscarMembroPorCpf = async (cpf: string) => {
+    if (cpf.length !== 11) {
+      setFormData(estadoInicial);
+      return;
+    }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    try {
+      const response = await fetch(`http://localhost:3000/membros/cpf/${cpf}`);
+      if (response.ok) {
+        const membroEncontrado: Membro = await response.json();
+        setFormData(membroEncontrado);
+      } else if (response.status === 404) {
+        setFormData({ ...estadoInicial, cpf });
+      } else {
+        throw new Error('Erro na busca por CPF.');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar CPF:', error);
+      alert('Erro ao verificar CPF. Tente novamente.');
+      setFormData(estadoInicial);
+    }
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    if (name === 'cpf') {
+      const rawCpf = value.replace(/\D/g, '');
+      setFormData(prev => ({ ...prev, cpf: rawCpf }));
+      return;
+    }
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
+    if (e.target.name === 'cpf') {
+      const rawCpf = e.target.value.replace(/\D/g, '');
+      buscarMembroPorCpf(rawCpf);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setEnviando(true);
-    const novoMembro: Membro = {
-      id: id || gerarId(),
-      nome,
-      email,
-      telefone,
-      endereco,
-      ativo,
-    };
+
+    const isUpdating = !!formData.id;
+    const membroParaEnviar: Membro = isUpdating
+      ? (formData as Membro)
+      : { ...(formData as Membro), id: uuidv4() };
+
+    const url = isUpdating
+      ? `http://localhost:3000/membros/${formData.id}`
+      : 'http://localhost:3000/membros';
+    const method = isUpdating ? 'PUT' : 'POST';
+
     try {
-      const response = await fetch('http://localhost:3000/membros', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novoMembro),
+        body: JSON.stringify(membroParaEnviar),
       });
-      if (!response.ok) throw new Error('Erro ao cadastrar membro');
-      alert('Membro cadastrado com sucesso!');
-  setId('');
-  setNome('');
-  setEmail('');
-  setTelefone('');
-  setEndereco('');
-  setAtivo(true);
+
+      if (!response.ok) {
+        // tenta extrair a mensagem do backend
+        const erroData = await response.json().catch(() => null);
+        throw new Error(
+          erroData?.message || `Erro ao ${isUpdating ? 'atualizar' : 'cadastrar'} membro`
+        );
+      }
+
+      // pega o JSON ou usa o que enviamos
+      const membroSalvo: Membro = await response.json().catch(() => membroParaEnviar);
+
+      alert(`Membro ${isUpdating ? 'atualizado' : 'cadastrado'} com sucesso!`);
+      setFormData(estadoInicial);
+      onCadastroSucesso(membroSalvo);
+
     } catch (error) {
-      alert('Erro ao cadastrar membro. Verifique o console.');
       console.error(error);
+      alert(`Erro ao ${isUpdating ? 'atualizar' : 'cadastrar'} membro. Verifique o console.`);
     } finally {
       setEnviando(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ margin: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
-      <h2>Cadastrar Membro</h2>
-      <div style={{ marginBottom: '10px' }}>
-        <label>ID:
-          <input
-            type="text"
-            value={id}
-            onChange={e => {
-              const val = e.target.value.replace(/[^0-9]/g, '');
-              setId(val);
-            }}
-            placeholder="(gerado automaticamente se vazio)"
-            style={{ marginLeft: '10px' }}
-            pattern="[0-9]*"
-            inputMode="numeric"
-          />
-        </label>
+    <form onSubmit={handleSubmit} className="form-container">
+      <h2 className="form-title">
+        {formData.id ? 'Atualizar Membro' : 'Cadastrar Membro'}
+      </h2>
+
+      <div className="form-group">
+        <label>CPF:</label>
+        <input
+          type="text"
+          name="cpf"
+          value={formData.cpf || ''}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          required
+          maxLength={11}
+          placeholder="Somente números"
+        />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>Nome:
-          <input
-            type="text"
-            value={nome}
-            onChange={e => {
-              const val = e.target.value.replace(/[^A-Za-zÀ-ÿ\s]/g, '');
-              setNome(val);
-            }}
-            required
-            style={{ marginLeft: '10px' }}
-            pattern="[A-Za-zÀ-ÿ\s]+"
-          />
-        </label>
+
+      <div className="form-group">
+        <label>Nome:</label>
+        <input
+          type="text"
+          name="nome"
+          value={formData.nome || ''}
+          onChange={handleChange}
+          required
+        />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>Email:
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            style={{ marginLeft: '10px' }}
-            pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
-          />
-        </label>
+
+      <div className="form-group">
+        <label>Email:</label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email || ''}
+          onChange={handleChange}
+          required
+        />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>Telefone:
-          <input
-            type="text"
-            value={telefone}
-            onChange={e => {
-              const val = e.target.value.replace(/[^0-9]/g, '');
-              setTelefone(val);
-            }}
-            required
-            style={{ marginLeft: '10px' }}
-            pattern="[0-9]+"
-            inputMode="numeric"
-          />
-        </label>
+
+      <div className="form-group">
+        <label>Telefone:</label>
+        <input
+          type="tel"
+          name="telefone"
+          value={formData.telefone || ''}
+          onChange={handleChange}
+          required
+        />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>Endereço:
-          <input
-            type="text"
-            value={endereco}
-            onChange={e => {
-              const val = e.target.value.replace(/[^A-Za-zÀ-ÿ0-9\s]/g, '');
-              setEndereco(val);
-            }}
-            required
-            style={{ marginLeft: '10px' }}
-            pattern="[A-Za-zÀ-ÿ0-9\s]+"
-          />
-        </label>
-      </div>
-      <div style={{ marginBottom: '10px' }}>
+
+      <div className="checkbox-group">
         <label>
           Ativo:
-          <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} style={{ marginLeft: '10px' }} />
+          <input
+            type="checkbox"
+            name="ativo"
+            checked={!!formData.ativo}
+            onChange={handleChange}
+          />
         </label>
       </div>
-      <button type="submit" disabled={enviando} style={{ padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-        {enviando ? 'Enviando...' : 'Cadastrar'}
+
+      <button type="submit" disabled={enviando} className="form-button">
+        {enviando ? 'Enviando...' : (formData.id ? 'Atualizar' : 'Cadastrar')}
       </button>
     </form>
   );

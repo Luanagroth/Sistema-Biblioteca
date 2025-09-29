@@ -1,0 +1,113 @@
+/* LivroComEmprestimo.module.css */
+.container {
+  font-family: sans-serif;
+  /* Alterar a margem para 'auto' nas laterais centraliza o container na página */
+  margin: 20px auto; 
+  /* Adicionar uma largura máxima */
+  max-width: 1600px; /* Um bom limite para telas muito largas. Ajuste se desejar. */
+}
+
+h2 { margin-bottom: 12px; }
+
+.searchInput {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  margin-bottom: 8px;
+  background: #fff;
+}
+
+.status {
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+/* Botões usados na lista (empregar/devolver) */
+.button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  background: #1976d2;
+  color: white;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buttonDevolver {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #d32f2f;
+  color: white;
+  font-weight: 600;
+}
+
+/* Modal simples usado para confirmar empréstimo (se aplicável) */
+.modal {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid #eee;
+}
+
+.modalActions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.buttonConfirmar {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #2e7d32;
+  color: white;
+  font-weight: 600;
+}
+
+.buttonCancelar {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: transparent;
+}
+/* Adicione este novo estilo para o container dos formulários */
+.formsContainer {
+  display: grid;
+
+  /* --- A MÁGICA ACONTECE AQUI --- */
+  /* Ele cria colunas de no mínimo 400px. O 'auto-fit' 
+     cria quantas colunas couberem na largura da tela. 
+     Se não couber, ele quebra a linha automaticamente. */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+  gap: 10px; /* Espaçamento entre os formulários */
+  margin-bottom: 20px;
+}

@@ -1,88 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, type FormEvent, type ChangeEvent } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import type { Livro, NovoLivro } from '../models/livros';
 
-const FormularioLivro: React.FC = () => {
-  const [formData, setFormData] = useState({
-    id: '',
+interface FormularioLivroProps {
+  onAdicionarLivro: (livro: Livro) => void;
+}
+
+const FormularioLivro: React.FC<FormularioLivroProps> = ({ onAdicionarLivro }) => {
+  const [formData, setFormData] = useState<NovoLivro>({
     titulo: '',
     autor: '',
-    anoPublicacao: '',
+    anoPublicacao: 0,
     genero: '',
     disponivel: true,
   });
+  const [enviando, setEnviando] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
+    if (name === 'anoPublicacao') {
+      setFormData(prev => ({ ...prev, [name]: Number(value.replace(/\D/g, '')) }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setEnviando(true);
     try {
+      const livroComId = { ...formData, id: uuidv4() };
       const response = await fetch('http://localhost:3000/livros', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(livroComId),
       });
+      if (!response.ok) throw new Error('Erro ao adicionar livro');
 
-      if (!response.ok) {
-        throw new Error('Erro ao adicionar livro');
-      }
-
+      const livroAdicionado: Livro = await response.json();
+      onAdicionarLivro(livroAdicionado); // Atualiza lista no pai
       alert('Livro adicionado com sucesso!');
-      // Opcional: Limpar o formulário após o envio
-      setFormData({
-        id: '',
-        titulo: '',
-        autor: '',
-        anoPublicacao: '',
-        genero: '',
-        disponivel: true,
-      });
+      setFormData({ titulo: '', autor: '', anoPublicacao: 0, genero: '', disponivel: true });
     } catch (error) {
       console.error(error);
       alert('Erro ao adicionar livro. Verifique o console.');
+    } finally {
+      setEnviando(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ margin: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+    <form onSubmit={handleSubmit} className="form-container">
       <h2>Adicionar Novo Livro</h2>
-      <div style={{ marginBottom: '10px' }}>
-        <label>
-          ID:
-          <input type="text" name="id" value={formData.id} onChange={handleChange} required style={{ marginLeft: '10px' }} />
-        </label>
+      <div className="form-group">
+        <label>Título:</label>
+        <input type="text" name="titulo" value={formData.titulo} onChange={handleChange} required />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>
-          Título:
-          <input type="text" name="titulo" value={formData.titulo} onChange={handleChange} required style={{ marginLeft: '10px' }} />
-        </label>
+      <div className="form-group">
+        <label>Autor:</label>
+        <input type="text" name="autor" value={formData.autor} onChange={handleChange} required />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>
-          Autor:
-          <input type="text" name="autor" value={formData.autor} onChange={handleChange} required style={{ marginLeft: '10px' }} />
-        </label>
+      <div className="form-group">
+        <label>Ano:</label>
+        <input type="text" name="anoPublicacao" value={formData.anoPublicacao} onChange={handleChange} required maxLength={4} />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>
-          Ano:
-          <input type="number" name="anoPublicacao" value={formData.anoPublicacao} onChange={handleChange} required style={{ marginLeft: '10px' }} />
-        </label>
+      <div className="form-group">
+        <label>Gênero:</label>
+        <input type="text" name="genero" value={formData.genero} onChange={handleChange} required />
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <label>
-          Gênero:
-          <input type="text" name="genero" value={formData.genero} onChange={handleChange} required style={{ marginLeft: '10px' }} />
-        </label>
-      </div>
-      <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Adicionar</button>
+      <button type="submit" disabled={enviando} className="form-button">
+        {enviando ? 'Enviando...' : 'Adicionar'}
+      </button>
     </form>
   );
 };
